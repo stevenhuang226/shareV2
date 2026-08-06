@@ -25,7 +25,7 @@ func main() {
 	log.Println("Data:", cfg.DataDirectory)
 
 	storage := &storage.Storage{
-		RootPath: "./test",
+		RootPath: cfg.DataDirectory,
 	}
 
 	uploadManager, err := upload.CreateManager(storage)

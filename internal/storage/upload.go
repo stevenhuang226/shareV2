@@ -15,6 +15,12 @@ type Upload struct {
 	finalPath string
 }
 
+var (
+	ErrFileIsNil      = errors.New("file is nil")
+	ErrOffsetWrong    = errors.New("wrong offset")
+	ErrOffsetMismatch = errors.New("append only")
+)
+
 const (
 	namingRetryLimit int   = 32
 	maxFileSize      int64 = 10 * 1024 * 1024 * 1024
@@ -78,15 +84,15 @@ func (u *Upload) Size() int64 {
 /* write bytes int64, Err error */
 func (u *Upload) Append(offset int64, r io.Reader) (int64, error) {
 	if u.file == nil {
-		return 0, errors.New("file is nil")
+		return 0, ErrFileIsNil
 	}
 	if offset < 0 || offset > maxFileSize {
-		return 0, errors.New("wrong offset")
+		return 0, ErrOffsetWrong
 	}
 
 	/* not support offset yet */
 	if offset != u.size {
-		return 0, errors.New("append only")
+		return 0, ErrOffsetMismatch
 	}
 
 	remaining := maxFileSize - offset // bytes it can use
@@ -112,7 +118,7 @@ func (u *Upload) Append(offset int64, r io.Reader) (int64, error) {
 
 func (u *Upload) Commit() error {
 	if u.file == nil {
-		return errors.New("file is nil")
+		return ErrFileIsNil
 	}
 
 	if err := u.file.Sync(); err != nil {
@@ -134,7 +140,7 @@ func (u *Upload) Commit() error {
 
 func (u *Upload) Abort() error {
 	if u.file == nil {
-		return errors.New("file is nil")
+		return ErrFileIsNil
 	}
 
 	if err := u.file.Close(); err != nil {

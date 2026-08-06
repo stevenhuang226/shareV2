@@ -25,6 +25,10 @@ type Manager struct {
 	sessionTimeout time.Duration
 }
 
+var (
+	ErrNotFound = errors.New("session not found")
+)
+
 func CreateManager(storage *storage.Storage) (*Manager, error) {
 	sessions := make(map[string]*Session)
 
@@ -80,6 +84,15 @@ func (m *Manager) Commit(id string) error {
 	return session.commit()
 }
 
+func (m *Manager) NextOffset(id string) (int64, error) {
+	session, err := m.findSession(id)
+	if err != nil {
+		return 0, err
+	}
+
+	return session.upload.Size()
+}
+
 func (m *Manager) Cleanup() {
 	var expired []*Session
 
@@ -105,7 +118,7 @@ func (m *Manager) findSession(id string) (*Session, error) {
 
 	session, ok := m.sessions[id]
 	if !ok {
-		return nil, errors.New("session not found")
+		return nil, ErrNotFound
 	}
 
 	return session, nil

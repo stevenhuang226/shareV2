@@ -24,7 +24,7 @@ func (h *Handler) NewMux() *http.ServeMux {
 	mux.HandleFunc("GET /", root)
 	mux.HandleFunc("GET /download/{id}", download)
 	mux.HandleFunc("GET /upload", h.createSession)
-	mux.HandleFunc("PATH /upload/{id}", h.upload)
+	mux.HandleFunc("PATCH /upload/{id}", h.upload)
 
 	return mux
 }
