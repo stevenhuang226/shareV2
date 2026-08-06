@@ -40,7 +40,9 @@ func main() {
 
 	go cleanup.Run(ctx)
 
-	mux := handler.NewMux()
+	httpHandler := handler.NewHandler(uploadManager)
+
+	mux := httpHandler.NewMux()
 
 	if err := http.ListenAndServe(cfg.ListenAddress, mux); err != nil {
 		log.Fatal(err)

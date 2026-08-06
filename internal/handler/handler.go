@@ -1,11 +1,21 @@
 package handler
 
-import "net/http"
+import (
+	"net/http"
+	"sharev2/internal/upload"
+)
 
 type Handler struct {
+	uploadManager *upload.Manager
 }
 
-func NewMux() *http.ServeMux {
+func NewHandler(um *upload.Manager) *Handler {
+	return &Handler{
+		uploadManager: um,
+	}
+}
+
+func (h *Handler) NewMux() *http.ServeMux {
 	/*
 		a helper function register mux
 	*/
@@ -13,7 +23,8 @@ func NewMux() *http.ServeMux {
 
 	mux.HandleFunc("GET /", root)
 	mux.HandleFunc("GET /download/{id}", download)
-	mux.HandleFunc("POST /upload", upload)
+	mux.HandleFunc("GET /upload", h.createSession)
+	mux.HandleFunc("PATH /upload/{id}", h.upload)
 
 	return mux
 }
