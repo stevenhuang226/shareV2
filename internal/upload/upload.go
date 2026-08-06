@@ -93,11 +93,9 @@ func (m *Manager) Cleanup() {
 	m.mu.Unlock()
 
 	for _, s := range expired {
-		s.mu.Lock()
 		if err := s.abort(); err != nil {
 			log.Printf("cleanup session: %v", err)
 		}
-		s.mu.Unlock()
 	}
 }
 
