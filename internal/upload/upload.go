@@ -3,38 +3,48 @@ package upload
 import (
 	"errors"
 	"io"
+	"log"
 	"sharev2/internal/storage"
 	"sync"
+	"time"
 )
 
 type Session struct {
 	mu     sync.Mutex
 	upload *storage.Upload
+
+	CreatedAt  time.Time
+	LastSeenAt time.Time
 }
 
 type Manager struct {
 	mu       sync.Mutex // protect sessions
 	sessions map[string]*Session
 	storage  *storage.Storage
+
+	sessionTimeout time.Duration
 }
 
 func CreateManager(storage *storage.Storage) (*Manager, error) {
 	sessions := make(map[string]*Session)
 
 	return &Manager{
-		sessions: sessions,
-		storage:  storage,
+		sessions:       sessions,
+		storage:        storage,
+		sessionTimeout: 300 * time.Second,
 	}, nil
 }
 
-func (m *Manager) NewSession() (string, error) {
+func (m *Manager) CreateSession() (string, error) {
 	u, err := m.storage.CreateUpload()
 	if err != nil {
 		return "", err
 	}
 
 	session := &Session{
-		upload: u,
+		upload:     u,
+		CreatedAt:  time.Now(),
+		LastSeenAt: time.Now(),
 	}
 
 	m.mu.Lock()
@@ -50,6 +60,8 @@ func (m *Manager) Append(id string, offset int64, r io.Reader) (int64, error) {
 		return 0, err
 	}
 
+	session.LastSeenAt = time.Now()
+
 	return session.append(offset, r)
 }
 
@@ -59,11 +71,34 @@ func (m *Manager) Commit(id string) error {
 		return err
 	}
 
+	session.LastSeenAt = time.Now()
+
 	m.mu.Lock()
 	delete(m.sessions, id)
 	m.mu.Unlock()
 
 	return session.commit()
+}
+
+func (m *Manager) Cleanup() {
+	var expired []*Session
+
+	m.mu.Lock()
+	for id, s := range m.sessions {
+		if time.Since(s.LastSeenAt) > m.sessionTimeout {
+			delete(m.sessions, id)
+			expired = append(expired, s)
+		}
+	}
+	m.mu.Unlock()
+
+	for _, s := range expired {
+		s.mu.Lock()
+		if err := s.abort(); err != nil {
+			log.Printf("cleanup session: %v", err)
+		}
+		s.mu.Unlock()
+	}
 }
 
 func (m *Manager) findSession(id string) (*Session, error) {
