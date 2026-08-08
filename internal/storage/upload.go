@@ -19,6 +19,7 @@ var (
 	ErrFileIsNil      = errors.New("file is nil")
 	ErrOffsetWrong    = errors.New("wrong offset")
 	ErrOffsetMismatch = errors.New("append only")
+	ErrFileNotClose   = errors.New("file not close")
 )
 
 const (
@@ -130,6 +131,18 @@ func (u *Upload) Commit() error {
 	}
 
 	u.file = nil
+
+	if err := os.Rename(u.tmpPath, u.finalPath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *Upload) RenameTmp() error {
+	if u.file != nil {
+		return ErrFileNotClose
+	}
 
 	if err := os.Rename(u.tmpPath, u.finalPath); err != nil {
 		return err
