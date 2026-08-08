@@ -97,3 +97,20 @@ func (h *Handler) createSession(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 }
+
+func (h *Handler) commit(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+
+	err := h.uploadManager.Commit(id)
+
+	switch {
+	case errors.Is(err, upload.ErrNotFound):
+		http.Error(w, "session not found", http.StatusNotFound)
+		return
+	case err != nil:
+		http.Error(w, "internal server error, commit failed", http.StatusConflict)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
