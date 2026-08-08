@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"sharev2/internal/model"
 	"sharev2/internal/storage"
 	"sync"
 	"time"
@@ -15,6 +16,8 @@ type Session struct {
 
 	CreatedAt  time.Time
 	LastSeenAt time.Time
+
+	metaData model.MetaData
 }
 
 type Manager struct {
@@ -26,7 +29,8 @@ type Manager struct {
 }
 
 var (
-	ErrNotFound = errors.New("session not found")
+	ErrNotFound    = errors.New("session not found")
+	ErrNotMetaData = errors.New("not meta data")
 )
 
 func CreateManager(storage *storage.Storage) (*Manager, error) {
@@ -39,16 +43,26 @@ func CreateManager(storage *storage.Storage) (*Manager, error) {
 	}, nil
 }
 
-func (m *Manager) CreateSession() (string, error) {
+func (m *Manager) CreateSession(clientMetaData model.MetaData) (string, error) {
 	u, err := m.storage.CreateUpload()
 	if err != nil {
 		return "", err
+	}
+
+	metaData := model.MetaData{
+		ID:            u.Id(),
+		Name:          clientMetaData.ID,
+		MIMEType:      clientMetaData.MIMEType,
+		UploadTime:    time.Now(),
+		LastDownload:  time.Now(),
+		DownloadCount: 0,
 	}
 
 	session := &Session{
 		upload:     u,
 		CreatedAt:  time.Now(),
 		LastSeenAt: time.Now(),
+		metaData:   metaData,
 	}
 
 	m.mu.Lock()

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"sharev2/internal/model"
 	"sharev2/internal/storage"
 	"sharev2/internal/upload"
 	"strconv"
@@ -78,7 +79,14 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createSession(w http.ResponseWriter, r *http.Request) {
-	id, err := h.uploadManager.CreateSession()
+	var metaData model.MetaData
+
+	if err := json.NewDecoder(r.Body).Decode(&metaData); err != nil {
+		http.Error(w, "invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	id, err := h.uploadManager.CreateSession(metaData)
 
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
