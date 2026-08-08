@@ -1,4 +1,4 @@
 {
-    "data_directory": "./data",
+    "data_directory": "./test",
     "listen_address": ":8080"
 }

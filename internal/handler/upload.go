@@ -30,7 +30,7 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	n, err := h.uploadManager.Append(id, offset, r)
+	n, err := h.uploadManager.Append(id, offset, r.Body)
 
 	switch {
 	case errors.Is(err, upload.ErrNotFound):

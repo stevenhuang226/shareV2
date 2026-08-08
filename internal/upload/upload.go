@@ -90,7 +90,7 @@ func (m *Manager) NextOffset(id string) (int64, error) {
 		return 0, err
 	}
 
-	return session.upload.Size()
+	return session.upload.Size(), nil
 }
 
 func (m *Manager) Cleanup() {
