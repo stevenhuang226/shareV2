@@ -10,6 +10,7 @@ type Config struct {
 	DataDirectory     string `json:"data_directory"`
 	MetaDataDirectory string `json:"metadata_directory"`
 	ListenAddress     string `json:"listen_address"`
+	WebDirectory      string `json:"web_directory"`
 }
 
 func Load(path string) (*Config, error) {

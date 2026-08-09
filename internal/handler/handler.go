@@ -7,11 +7,13 @@ import (
 
 type Handler struct {
 	uploadManager *upload.Manager
+	webRoot       string
 }
 
-func NewHandler(um *upload.Manager) *Handler {
+func NewHandler(um *upload.Manager, webRoot string) *Handler {
 	return &Handler{
 		uploadManager: um,
+		webRoot:       webRoot,
 	}
 }
 
@@ -21,7 +23,7 @@ func (h *Handler) NewMux() *http.ServeMux {
 	*/
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /", root)
+	mux.Handle("/", http.FileServer(http.Dir(h.webRoot)))
 	mux.HandleFunc("GET /download/{id}", download)
 	mux.HandleFunc("GET /upload", h.createSession)
 	mux.HandleFunc("PATCH /upload/{id}", h.upload)

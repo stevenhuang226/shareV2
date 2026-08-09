@@ -42,7 +42,7 @@ func main() {
 
 	go cleanup.Run(ctx)
 
-	httpHandler := handler.NewHandler(uploadManager)
+	httpHandler := handler.NewHandler(uploadManager, cfg.WebDirectory)
 
 	mux := httpHandler.NewMux()
 
