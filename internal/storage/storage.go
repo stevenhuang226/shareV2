@@ -6,7 +6,8 @@ import (
 )
 
 type Storage struct {
-	RootPath string
+	DataRoot     string
+	MetaDataRoot string
 }
 
 func generateID() (string, error) {

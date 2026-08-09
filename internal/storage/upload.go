@@ -39,8 +39,8 @@ func (s *Storage) CreateUpload() (*Upload, error) {
 			return nil, err
 		}
 
-		tmp := filepath.Join(s.RootPath, id+".uploading")
-		final := filepath.Join(s.RootPath, id)
+		tmp := filepath.Join(s.DataRoot, id+".uploading")
+		final := filepath.Join(s.DataRoot, id)
 
 		if _, err := os.Stat(tmp); err == nil {
 			continue // tmp already exist, retry

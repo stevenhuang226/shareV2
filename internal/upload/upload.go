@@ -51,7 +51,8 @@ func (m *Manager) CreateSession(clientMetaData model.MetaData) (string, error) {
 
 	metaData := model.MetaData{
 		ID:            u.Id(),
-		Name:          clientMetaData.ID,
+		Name:          clientMetaData.Name,
+		Size:          0,
 		MIMEType:      clientMetaData.MIMEType,
 		UploadTime:    time.Now(),
 		LastDownload:  time.Now(),
@@ -95,7 +96,13 @@ func (m *Manager) Commit(id string) error {
 	delete(m.sessions, id)
 	m.mu.Unlock()
 
-	return session.commit()
+	if err := session.commit(); err != nil {
+		return err
+	}
+
+	session.metaData.Size = session.upload.Size()
+
+	return m.storage.WriteMetaData(&session.metaData)
 }
 
 func (m *Manager) NextOffset(id string) (int64, error) {

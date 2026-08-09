@@ -22,10 +22,12 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println("Listen:", cfg.ListenAddress)
-	log.Println("Data:", cfg.DataDirectory)
+	log.Println("DataDirectory:", cfg.DataDirectory)
+	log.Println("MetaDataDirectory:", cfg.MetaDataDirectory)
 
 	storage := &storage.Storage{
-		RootPath: cfg.DataDirectory,
+		DataRoot:     cfg.DataDirectory,
+		MetaDataRoot: cfg.MetaDataDirectory,
 	}
 
 	uploadManager, err := upload.CreateManager(storage)

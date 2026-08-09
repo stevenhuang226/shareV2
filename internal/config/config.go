@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	DataDirectory string `json:"data_directory"`
-	ListenAddress string `json:"listen_address"`
+	DataDirectory     string `json:"data_directory"`
+	MetaDataDirectory string `json:"metadata_directory"`
+	ListenAddress     string `json:"listen_address"`
 }
 
 func Load(path string) (*Config, error) {
