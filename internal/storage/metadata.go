@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -40,4 +41,47 @@ func (s *Storage) ReadMetaData(id string) (model.MetaData, error) {
 	}
 
 	return metaData, nil
+}
+
+func (s *Storage) ListMetaData() ([]model.MetaData, error) {
+	entries, err := os.ReadDir(s.MetaDataRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	metaData := []model.MetaData{}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		id, ok := metaDataId(entry.Name())
+		if !ok {
+			continue
+		}
+
+		data, err := s.ReadMetaData(id)
+		if err != nil {
+			return nil, err
+		}
+
+		metaData = append(metaData, data)
+	}
+
+	return metaData, nil
+}
+
+func metaDataId(name string) (string, bool) {
+	if len(name) != 37 || name[32:] != ".json" {
+		return "", false
+	}
+
+	id := name[:32]
+
+	if _, err := hex.DecodeString(id); err != nil {
+		return "", false
+	}
+
+	return id, true
 }

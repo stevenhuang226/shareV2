@@ -25,6 +25,7 @@ func (h *Handler) NewMux() *http.ServeMux {
 
 	mux.Handle("/", http.FileServer(http.Dir(h.webRoot)))
 	mux.HandleFunc("GET /download/{id}", h.download)
+	mux.HandleFunc("GET /files", h.listFiles)
 	mux.HandleFunc("GET /upload", h.createSession)
 	mux.HandleFunc("PATCH /upload/{id}", h.upload)
 	mux.HandleFunc("POST /upload/{id}/commit", h.commit)
