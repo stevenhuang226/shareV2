@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"sharev2/internal/config"
+	"sharev2/internal/download"
 	"sharev2/internal/handler"
 	"sharev2/internal/scheduler"
 	"sharev2/internal/storage"
@@ -22,25 +23,33 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Println("Listen:", cfg.ListenAddress)
-	log.Println("Data:", cfg.DataDirectory)
+	log.Println("DataDirectory:", cfg.DataDirectory)
+	log.Println("MetaDataDirectory:", cfg.MetaDataDirectory)
 
 	storage := &storage.Storage{
-		RootPath: cfg.DataDirectory,
+		DataRoot:     cfg.DataDirectory,
+		MetaDataRoot: cfg.MetaDataDirectory,
 	}
 
 	uploadManager, err := upload.CreateManager(storage)
 	if err != nil {
 		log.Fatal(err)
 	}
+	downloadManager := download.NewManager(storage)
 
-	cleanup := scheduler.NewCleanupScheduler(
+	uploadCleanup := scheduler.NewUploadCleanupScheduler(
 		uploadManager,
 		time.Minute,
 	)
+	expireCleanup := scheduler.NewExprieCleanupScheduler(
+		downloadManager,
+		time.Hour,
+	)
 
-	go cleanup.Run(ctx)
+	go uploadCleanup.Run(ctx)
+	go expireCleanup.Run(ctx)
 
-	httpHandler := handler.NewHandler(uploadManager)
+	httpHandler := handler.NewHandler(uploadManager, downloadManager, cfg.WebDirectory)
 
 	mux := httpHandler.NewMux()
 

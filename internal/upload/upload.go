@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"sharev2/internal/model"
 	"sharev2/internal/storage"
 	"sync"
 	"time"
@@ -15,6 +16,8 @@ type Session struct {
 
 	CreatedAt  time.Time
 	LastSeenAt time.Time
+
+	metaData model.MetaData
 }
 
 type Manager struct {
@@ -26,7 +29,8 @@ type Manager struct {
 }
 
 var (
-	ErrNotFound = errors.New("session not found")
+	ErrNotFound    = errors.New("session not found")
+	ErrNotMetaData = errors.New("not meta data")
 )
 
 func CreateManager(storage *storage.Storage) (*Manager, error) {
@@ -39,16 +43,31 @@ func CreateManager(storage *storage.Storage) (*Manager, error) {
 	}, nil
 }
 
-func (m *Manager) CreateSession() (string, error) {
+func (m *Manager) CreateSession(clientMetaData model.MetaData) (string, error) {
 	u, err := m.storage.CreateUpload()
 	if err != nil {
 		return "", err
+	}
+
+	if clientMetaData.MIMEType == "" {
+		clientMetaData.MIMEType = "application/octet-stream"
+	}
+
+	metaData := model.MetaData{
+		ID:            u.Id(),
+		Name:          clientMetaData.Name,
+		Size:          0,
+		MIMEType:      clientMetaData.MIMEType,
+		UploadTime:    time.Now(),
+		LastDownload:  time.Now(),
+		DownloadCount: 0,
 	}
 
 	session := &Session{
 		upload:     u,
 		CreatedAt:  time.Now(),
 		LastSeenAt: time.Now(),
+		metaData:   metaData,
 	}
 
 	m.mu.Lock()
@@ -81,7 +100,13 @@ func (m *Manager) Commit(id string) error {
 	delete(m.sessions, id)
 	m.mu.Unlock()
 
-	return session.commit()
+	if err := session.commit(); err != nil {
+		return err
+	}
+
+	session.metaData.Size = session.upload.Size()
+
+	return m.storage.WriteMetaData(&session.metaData)
 }
 
 func (m *Manager) NextOffset(id string) (int64, error) {
