@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"sharev2/internal/config"
+	"sharev2/internal/download"
 	"sharev2/internal/handler"
 	"sharev2/internal/scheduler"
 	"sharev2/internal/storage"
@@ -34,6 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	downloadManager := download.NewManager(storage)
 
 	cleanup := scheduler.NewCleanupScheduler(
 		uploadManager,
@@ -42,7 +44,7 @@ func main() {
 
 	go cleanup.Run(ctx)
 
-	httpHandler := handler.NewHandler(uploadManager, cfg.WebDirectory)
+	httpHandler := handler.NewHandler(uploadManager, downloadManager, cfg.WebDirectory)
 
 	mux := httpHandler.NewMux()
 

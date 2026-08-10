@@ -19,3 +19,25 @@ func (s *Storage) WriteMetaData(metaData *model.MetaData) error {
 
 	return json.NewEncoder(file).Encode(metaData)
 }
+
+func (s *Storage) ReadMetaData(id string) (model.MetaData, error) {
+	metaPath := filepath.Join(s.MetaDataRoot, id+".json")
+
+	metaData := model.MetaData{
+		ID:       id,
+		Name:     "ERROR",
+		MIMEType: "ERROR",
+	}
+
+	file, err := os.Open(metaPath)
+	if err != nil {
+		return metaData, err
+	}
+	defer file.Close()
+
+	if err := json.NewDecoder(file).Decode(&metaData); err != nil {
+		return metaData, err
+	}
+
+	return metaData, nil
+}
