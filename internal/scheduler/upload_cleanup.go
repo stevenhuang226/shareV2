@@ -6,19 +6,19 @@ import (
 	"time"
 )
 
-type CleanupScheduler struct {
+type UploadCleanupScheduler struct {
 	manager  *upload.Manager
 	interval time.Duration
 }
 
-func NewCleanupScheduler(manager *upload.Manager, interval time.Duration) *CleanupScheduler {
-	return &CleanupScheduler{
+func NewUploadCleanupScheduler(manager *upload.Manager, interval time.Duration) *UploadCleanupScheduler {
+	return &UploadCleanupScheduler{
 		manager:  manager,
 		interval: interval,
 	}
 }
 
-func (s *CleanupScheduler) Run(ctx context.Context) {
+func (s *UploadCleanupScheduler) Run(ctx context.Context) {
 	ticker := time.NewTicker(s.interval)
 	defer ticker.Stop()
 

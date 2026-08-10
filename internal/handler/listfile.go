@@ -6,7 +6,7 @@ import (
 )
 
 func (h *Handler) listFiles(w http.ResponseWriter, r *http.Request) {
-	metaData, err := h.downloadManager.ListMetaDatas()
+	metaData, err := h.downloadManager.ListMetaData()
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

@@ -19,6 +19,10 @@ var (
 	ErrMetaDataMiss = errors.New("metadata miss")
 )
 
+const (
+	expiration = 7 * 24 * time.Hour
+)
+
 func NewManager(storage *storage.Storage) *Manager {
 	return &Manager{
 		storage: storage,
@@ -73,4 +77,21 @@ func (m *Manager) AddDownloadCount(clientId string) error {
 	metaData.DownloadCount++
 
 	return m.storage.WriteMetaData(&metaData)
+}
+
+func (m *Manager) Cleanup() {
+	metaData, err := m.ListMetaData()
+	if err != nil {
+		log.Println(err)
+	}
+
+	for _, data := range metaData {
+		if time.Since(data.LastDownload) <= expiration {
+			continue
+		}
+
+		if err := m.storage.Delete(data.ID); err != nil {
+			log.Println(err)
+		}
+	}
 }

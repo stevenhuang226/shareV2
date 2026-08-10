@@ -37,12 +37,17 @@ func main() {
 	}
 	downloadManager := download.NewManager(storage)
 
-	cleanup := scheduler.NewCleanupScheduler(
+	uploadCleanup := scheduler.NewUploadCleanupScheduler(
 		uploadManager,
 		time.Minute,
 	)
+	expireCleanup := scheduler.NewExprieCleanupScheduler(
+		downloadManager,
+		time.Hour,
+	)
 
-	go cleanup.Run(ctx)
+	go uploadCleanup.Run(ctx)
+	go expireCleanup.Run(ctx)
 
 	httpHandler := handler.NewHandler(uploadManager, downloadManager, cfg.WebDirectory)
 
