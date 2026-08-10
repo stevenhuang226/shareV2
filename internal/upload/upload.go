@@ -49,6 +49,10 @@ func (m *Manager) CreateSession(clientMetaData model.MetaData) (string, error) {
 		return "", err
 	}
 
+	if clientMetaData.MIMEType == "" {
+		clientMetaData.MIMEType = "application/octet-stream"
+	}
+
 	metaData := model.MetaData{
 		ID:            u.Id(),
 		Name:          clientMetaData.Name,

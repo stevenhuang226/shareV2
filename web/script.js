@@ -13,24 +13,34 @@ async function loadFiles() {
 		container.replaceChildren();
 
 		if (files.length === 0) {
+			container.className = "file-list empty";
 			container.textContent = "No files.";
 			return;
 		}
 
 		for (const file of files) {
 			const item = document.createElement("div");
+			item.className = "file";
+
+			const main = document.createElement("div");
+			main.className = "file-main";
 
 			const name = document.createElement("a");
+			name.className = "file-name";
 			name.href = `/download/${file.id}`;
 			name.textContent = file.name;
 
-			const info = document.createElement("span");
+			const info = document.createElement("div");
+			info.className = "file-info";
 			info.textContent =
-				` (${file.size} bytes, ${file.mime_type}, uploaded ${file.upload_time})`;
+				`${file.size} bytes · ${file.mime_type} · uploaded ${file.upload_time}`;
 
-			item.append(name, info);
+			main.append(name, info);
+			item.appendChild(main);
+
 			container.appendChild(item);
 		}
+
 	} catch (error) {
 		console.error(error);
 		container.textContent = "Failed to load files.";
